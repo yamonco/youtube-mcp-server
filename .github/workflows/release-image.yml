@@ -1,0 +1,43 @@
+name: Request release image
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: release-image-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    if: github.ref == 'refs/heads/main'
+    runs-on: fractalops-ci-native
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22.23.4'
+          cache: npm
+      - run: npm ci
+      - run: npm test
+  request:
+    needs: verify
+    runs-on: fractalops-ci-native
+    timeout-minutes: 5
+    outputs:
+      request_id: ${{ steps.image.outputs.request_id }}
+      executor_commit: ${{ steps.image.outputs.executor_commit }}
+      release_run_url: ${{ steps.image.outputs.release_run_url }}
+    steps:
+      - id: image
+        uses: yamonco/yamon-gitops/.github/actions/request-project-image@e0bcc37370d28ea84c292f5568f6897a47791826
+        with:
+          profile: youtube-research
+          broker-url: ${{ vars.IMAGE_BUILD_BROKER_URL }}
+          source_channel: default
