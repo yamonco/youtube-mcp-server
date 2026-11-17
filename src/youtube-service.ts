@@ -877,6 +877,13 @@ export class YouTubeService {
 
     try {
       const source = await this.fetchTranscriptSource(videoId, options.language);
+      // Evict one entry before insertion; a full optional cache must not turn
+      // a successfully fetched transcript into an ECACHEFULL provider error.
+      if (!YouTubeService.transcriptCache.has(cacheKey)
+        && YouTubeService.transcriptCache.getStats().keys >= TRANSCRIPT_CACHE_MAX_KEYS) {
+        const oldestKey = YouTubeService.transcriptCache.keys()[0];
+        if (oldestKey !== undefined) YouTubeService.transcriptCache.del(oldestKey);
+      }
       YouTubeService.transcriptCache.set(cacheKey, source);
       return source;
     } catch (error) {

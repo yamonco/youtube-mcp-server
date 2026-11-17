@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 2,
+  "profiles": {
+    "youtube-research": {
+      "context": ".",
+      "dockerfile": "Dockerfile",
+      "buildTarget": "runtime",
+      "platform": "linux/amd64",
+      "network": "default",
+      "resources": {
+        "mode": "auto"
+      }
+    }
+  }
+}
